@@ -3,7 +3,7 @@ const memberController = require("./controller/member");
 const cartController = require("./routes/api/cart/controller");
 const appController = require("./routes/api/app/controller");
 
-exports.handler = async (event, context) => {
+exports.handler = async event => {
   let body;
   let statusCode = "200";
   const headers = {
