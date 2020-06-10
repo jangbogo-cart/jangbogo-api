@@ -8,7 +8,8 @@ exports.regist = async params => {
     const member = { idx: params["mb_idx"] };
     const cart = {
       cart_name: params["cart_name"],
-      mb_idx: params["mb_idx"]
+      mb_idx: params["mb_idx"],
+      sort: params["sort"] ? params["sort"] : 1
     };
 
     var memberInfo = await member_.selectMember_idx(member);
@@ -46,6 +47,9 @@ exports.modify = async params => {
     };
     if (params["cart_name"]) {
       cart.cart_name = params["cart_name"];
+    }
+    if (params["sort"]) {
+      cart.sort = params["sort"];
     }
     if (params["cart_status"]) {
       if (status[params["cart_status"]] != params["cart_status"]) {
