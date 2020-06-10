@@ -127,8 +127,8 @@ exports.updateCartM = async cart => {
 exports.deleteCartM = async cart => {
   return new Promise((resolve, reject) => {
     var sql = `DELETE FROM tcart_master 
-                WHERE cart_id = ?`;
-    connection.query(sql, [cart.cart_id], (err, result) => {
+                WHERE cart_idx = ?`;
+    connection.query(sql, [cart.cart_idx], (err, result) => {
       if (err) {
         return reject(`${SERVER_ERR_MSG}, err : ${err}`);
       } else {

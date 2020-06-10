@@ -1,17 +1,20 @@
 var express = require("express");
 var router = express.Router();
-// /* 로컬 실행 파일 */
-const member_ = require("./routes/api/member/mng/common");
-const cart_ = require("./routes/api/cart/controller");
-const appController = require("./routes/api/app/controller");
 const index = require("./index");
 
 router.post("/", async function(req, res) {
-  console.log(req.body);
-  var jsonObj = JSON.parse(req.body);
-  jsonObj.body = JSON.stringify(jsonObj.body);
-  var rs = await index.handler(jsonObj);
+  console.log(req.originalUrl);
+  var jsonObj = req.body;
+  console.log(`path : ${jsonObj.path}`);
+  console.log(`httpMethod : ${jsonObj.httpMethod}`);
+  console.log(`body : ${JSON.stringify(jsonObj.body)}`);
 
+  var paramObj = {
+    path: jsonObj.path,
+    httpMethod: jsonObj.httpMethod,
+    body: JSON.stringify(jsonObj.body)
+  };
+  var rs = await index.handler(paramObj);
   res.json({ code: 200, body: rs });
 });
 

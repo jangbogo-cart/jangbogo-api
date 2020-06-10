@@ -74,7 +74,7 @@ exports.delete = async params => {
   try {
     var resultObj = { code: 500, message: SERVER_ERR_MSG };
     const member = { idx: params["mb_idx"] };
-    const cart = { cart_id: params["cart_id"] };
+    const cart = { cart_idx: params["cart_idx"] };
 
     let rs = await cart_.deleteCartM(cart);
 
