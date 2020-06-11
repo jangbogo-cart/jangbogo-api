@@ -1,6 +1,7 @@
 const loginController = require("./controller/login");
 const memberController = require("./controller/member");
 const cartController = require("./routes/api/cart/controller");
+const CART_DETAIL = require("./routes/api/cartdt/controller");
 const appController = require("./routes/api/app/controller");
 
 exports.handler = async event => {
@@ -32,7 +33,14 @@ exports.handler = async event => {
           case "GET": //회원목록 조회(개발용)
             body = await memberController.list();
             break;
-          case "DELETE": //회원삭제 (개발용)
+          default:
+            throw new Error(`Unsupported method "${event.httpMethod}"`);
+        }
+        break;
+
+      case "/member/delete":
+        switch (event.httpMethod) {
+          case "POST": //회원삭제 (개발용)
             var jsonObj = JSON.parse(event.body);
             body = await memberController.delete(jsonObj);
             break;
@@ -51,7 +59,14 @@ exports.handler = async event => {
             var jsonObj = JSON.parse(event.body);
             body = await cartController.modify(jsonObj);
             break;
-          case "DELETE": //장바구니 삭제
+          default:
+            throw new Error(`Unsupported method "${event.httpMethod}"`);
+        }
+        break;
+
+      case "/cart/delete":
+        switch (event.httpMethod) {
+          case "POST": //장바구니 삭제
             var jsonObj = JSON.parse(event.body);
             body = await cartController.delete(jsonObj);
             break;
@@ -65,6 +80,43 @@ exports.handler = async event => {
           case "POST":
             var jsonObj = JSON.parse(event.body);
             body = await cartController.list(jsonObj);
+            break;
+          default:
+            throw new Error(`Unsupported method "${event.httpMethod}"`);
+        }
+        break;
+
+      case "/cartdt":
+        switch (event.httpMethod) {
+          case "POST":
+            var jsonObj = JSON.parse(event.body);
+            body = await CART_DETAIL.regist(jsonObj);
+            break;
+          case "PATCH":
+            var jsonObj = JSON.parse(event.body);
+            body = await CART_DETAIL.modify(jsonObj);
+            break;
+          default:
+            throw new Error(`Unsupported method "${event.httpMethod}"`);
+        }
+        break;
+
+      case "/cartdt/delete":
+        switch (event.httpMethod) {
+          case "POST":
+            var jsonObj = JSON.parse(event.body);
+            body = await CART_DETAIL.delete(jsonObj);
+            break;
+          default:
+            throw new Error(`Unsupported method "${event.httpMethod}"`);
+        }
+        break;
+
+      case "/cartdt/list":
+        switch (event.httpMethod) {
+          case "POST":
+            var jsonObj = JSON.parse(event.body);
+            body = await CART_DETAIL.list(jsonObj);
             break;
           default:
             throw new Error(`Unsupported method "${event.httpMethod}"`);

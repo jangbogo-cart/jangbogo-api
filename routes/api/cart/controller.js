@@ -51,6 +51,9 @@ exports.modify = async params => {
     if (params["sort"]) {
       cart.sort = params["sort"];
     }
+    if (params["deadline_date"]) {
+      cart.deadline_date = params["deadline_date"];
+    }
     if (params["cart_status"]) {
       if (status[params["cart_status"]] != params["cart_status"]) {
         throw new Error("parameter error [cart_status]");

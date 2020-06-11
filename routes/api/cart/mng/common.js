@@ -6,14 +6,30 @@ exports.selectCartMList = async cart => {
   return new Promise((resolve, reject) => {
     var sql = `SELECT cm.cart_idx
                     , cm.cart_name
+                    , cm.cart_status
                     , cm.sort
+                    , IFNULL(xx.total_price, 0) AS total_price
+                    , IFNULL(xx.total_item_count, 0) AS total_item_count
+                    , IFNULL(xx.total_finish_count, 0) AS total_finish_count
+                    , DATE_FORMAT(cm.deadline_date , '%Y-%c-%e %H:%i:%s') AS deadline_date
                     , DATE_FORMAT(cm.reg_date, '%Y-%c-%e %H:%i:%s') AS reg_date
                     , DATE_FORMAT(cm.update_date, '%Y-%c-%e %H:%i:%s') AS update_date
-                 FROM tcart_master cm
+                FROM tcart_master cm
+                LEFT JOIN (SELECT cd.cart_idx 
+                            , SUM(cd.item_price) AS total_price
+                            , SUM(cd.cart_dt_idx) AS total_item_count
+                            , SUM(CASE WHEN cd.status = '200' THEN 1 ELSE 0 END) AS total_finish_count
+                        FROM tcart_detail cd
+                  INNER JOIN tcart_master cm
+                        WHERE cm.cart_idx = cd.cart_idx 
+                          AND cm.mb_idx = ?
+                        GROUP BY cd.cart_idx 
+                      ) xx
+                  ON cm.cart_idx = xx.cart_idx
                 WHERE 1=1
                   AND cm.mb_idx = ?
-                ORDER BY cm.sort asc`;
-    connection.query(sql, [cart.mb_idx], (err, result) => {
+                ORDER BY cm.sort asc, cm.cart_idx asc `;
+    connection.query(sql, [cart.mb_idx, cart.mb_idx], (err, result) => {
       if (err) {
         return resolve({
           code: 500,
@@ -28,35 +44,46 @@ exports.selectCartMList = async cart => {
 
 exports.insertCartM = async cart => {
   return new Promise((resolve, reject) => {
-    var sql = `INSERT INTO tcart_master (mb_idx, cart_name, sort, reg_date, update_date) 
-                                  VALUES (?, ?, ?, NOW(), NOW())`;
-    connection.query(
-      sql,
-      [cart.mb_idx, cart.cart_name, cart.sort],
-      (err, result) => {
-        if (err) {
-          return reject({
-            code: 500,
-            message: `${SERVER_ERR_MSG}, err : ${err}`
-          });
+    var params = [];
+    var addSql = "";
+    if (!cart.deadline_date) {
+      params = [cart.mb_idx, cart.cart_name, cart.sort];
+      addSql = ` DATE_ADD(NOW(), INTERVAL 1 DAY)`;
+    } else {
+      params = [cart.mb_idx, cart.cart_name, cart.sort, cart.deadline_date];
+      addSql = ` ?`;
+    }
+
+    var sql = `INSERT INTO tcart_master (mb_idx, cart_name, sort, deadline_date, reg_date, update_date) 
+                                  VALUES (?, ?, ?, ${addSql}, NOW(), NOW())`;
+    connection.query(sql, params, (err, result) => {
+      if (err) {
+        return reject({
+          code: 500,
+          message: `${SERVER_ERR_MSG}, err : ${err}`
+        });
+      } else {
+        // console.log(result);
+        if (result.affectedRows == 0) {
+          return resolve({ code: 201, message: "Regist Fail" });
         } else {
-          console.log(result);
-          if (result.affectedRows == 0) {
-            return resolve({ code: 201, message: "Regist Fail" });
-          } else {
-            return resolve({
-              code: 200,
-              message: "Regist Success",
-              data: {
-                cart_idx: result.insertId,
-                cart_name: cart.cart_name,
-                sort: cart.sort
-              }
-            });
-          }
+          return resolve({
+            code: 200,
+            message: "Regist Success",
+            data: {
+              cart_idx: result.insertId,
+              cart_name: cart.cart_name,
+              cart_status: 100,
+              sort: cart.sort,
+              total_price: 0,
+              total_item_count: 0,
+              total_finish_count: 0,
+              deadline_date: cart.deadline_date
+            }
+          });
         }
       }
-    );
+    });
   });
 };
 
@@ -75,6 +102,10 @@ exports.updateCartM = async cart => {
     if (cart.sort) {
       addSql += ` , sort = ?`;
       params.push(cart.sort);
+    }
+    if (cart.deadline_date) {
+      addSql += ` , deadline_date = DATE(?)`;
+      params.push(cart.deadline_date);
     }
     params.push(cart.cart_idx, cart.mb_idx);
     let sql = `UPDATE tcart_master SET
