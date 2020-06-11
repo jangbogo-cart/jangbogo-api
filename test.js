@@ -15,7 +15,8 @@ router.post("/", async function(req, res) {
     body: JSON.stringify(jsonObj.body)
   };
   var rs = await index.handler(paramObj);
-  res.json({ code: 200, body: rs });
+  var result = JSON.parse(rs.body);
+  res.json(result);
 });
 
 module.exports = router;
