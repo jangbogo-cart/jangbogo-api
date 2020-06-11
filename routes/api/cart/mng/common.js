@@ -16,8 +16,8 @@ exports.selectCartMList = async cart => {
                     , DATE_FORMAT(cm.update_date, '%Y-%c-%e %H:%i:%s') AS update_date
                 FROM tcart_master cm
                 LEFT JOIN (SELECT cd.cart_idx 
-                            , SUM(cd.item_price) AS total_price
-                            , SUM(cd.cart_dt_idx) AS total_item_count
+                            , SUM(cd.item_price*cd.item_qty) AS total_price
+                            , COUNT(1) AS total_item_count
                             , SUM(CASE WHEN cd.status = '200' THEN 1 ELSE 0 END) AS total_finish_count
                         FROM tcart_detail cd
                   INNER JOIN tcart_master cm
